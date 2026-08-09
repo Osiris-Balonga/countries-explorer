@@ -1,5 +1,5 @@
 /* ============================================
-   ATLAS — design tokens
+   ATLAS - design tokens
    Palette encre de cartographe : charbon bleuté,
    rouge-brique (repères), or (données).
    ============================================ */
@@ -38,6 +38,17 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 html { color-scheme: dark; }
 body {
   margin: 0;
@@ -108,9 +119,7 @@ body {
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-4) 0;
-  background: rgba(16, 19, 26, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: var(--bg);
   border-bottom: 1px solid var(--border-soft);
   margin-bottom: var(--space-6);
 }
@@ -239,6 +248,12 @@ body {
   box-shadow: var(--shadow-card) !important;
 }
 .jvm-zoom-btn {
+  display: grid !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  place-items: center;
+  line-height: 1 !important;
   background: var(--surface-hover) !important;
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
@@ -421,5 +436,7 @@ body {
   .toolbar { flex-direction: column; align-items: stretch; }
   .search, .chips, .sort-btn { flex: 1 1 auto; width: 100%; }
   .sort-btn { justify-content: center; }
+  .view-btn,
+  .map-wrap { display: none !important; }
   .hero { padding: var(--space-10) var(--space-4) var(--space-6); }
 }

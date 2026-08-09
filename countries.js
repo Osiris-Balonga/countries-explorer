@@ -144,7 +144,7 @@ function countryCardHTML(country) {
   const langs = (country.languages || []).map((l) => l.name);
   const langLabel = langs.length > 2
     ? `${langs.slice(0, 2).join(', ')} +${langs.length - 2}`
-    : langs.join(', ') || '—';
+    : langs.join(', ') || '-';
 
   const [lat, lng] = country.latlng || [];
   const coords = (lat !== undefined && lng !== undefined)
@@ -214,7 +214,7 @@ function renderMap(list) {
       },
       onRegionTooltipShow(event, tooltip, code) {
         const c = state.all.find((x) => x.alpha2Code === code);
-        if (c) tooltip.text(`${c.name} — ${c.population.toLocaleString('fr-FR')} hab.`);
+        if (c) tooltip.text(`${c.name} - ${c.population.toLocaleString('fr-FR')} hab.`);
       },
       onRegionClick(event, code) {
         const c = state.all.find((x) => x.alpha2Code === code);
@@ -314,6 +314,15 @@ els.viewBtn.addEventListener('click', () => {
   state.view = state.view === 'grid' ? 'map' : 'grid';
   els.viewBtn.setAttribute('aria-pressed', state.view === 'map' ? 'true' : 'false');
   els.viewLabel.textContent = state.view === 'map' ? 'Grille' : 'Carte';
+  render();
+});
+
+const mobileViewport = window.matchMedia('(max-width: 640px)');
+mobileViewport.addEventListener('change', (event) => {
+  if (!event.matches || state.view === 'grid') return;
+  state.view = 'grid';
+  els.viewBtn.setAttribute('aria-pressed', 'false');
+  els.viewLabel.textContent = 'Carte';
   render();
 });
 
