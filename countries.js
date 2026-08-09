@@ -1,10 +1,15 @@
 'use strict';
 
-const API_BASE_URL = 'https://countries.dev';
+/* ============================================
+   ATLAS - Country explorer
+   Source: countries.dev public API
+   ============================================ */
 
-const CONTINENTS = ['All', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
+const API_BASE = 'https://countries.dev';
+
+const CONTINENTS = ['Tous', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 const CONTINENT_LABELS = {
-  All: 'Tous',
+  Tous: 'Tous',
   Africa: 'Afrique',
   Americas: 'Amériques',
   Asia: 'Asie',
@@ -12,205 +17,190 @@ const CONTINENT_LABELS = {
   Oceania: 'Océanie',
 };
 
-const elements = {
-  grid: document.getElementById('country-grid'),
+const els = {
+  grid: document.getElementById('grid'),
   searchInput: document.getElementById('search-input'),
-  continentChips: document.getElementById('continent-chips'),
-  sortButton: document.getElementById('sort-button'),
-  viewButton: document.getElementById('view-button'),
+  chips: document.getElementById('continent-chips'),
+  sortBtn: document.getElementById('sort-btn'),
+  sortLabel: document.getElementById('sort-label'),
+  viewBtn: document.getElementById('view-btn'),
   viewLabel: document.getElementById('view-label'),
-  map: document.getElementById('map'),
+  mapEl: document.getElementById('map'),
   resultsCount: document.getElementById('results-count'),
   emptyState: document.getElementById('empty-state'),
   errorState: document.getElementById('error-state'),
-  retryButton: document.getElementById('retry-button'),
+  retryBtn: document.getElementById('retry-btn'),
 };
 
 const state = {
-  countries: [],
-  query: '',
-  continent: 'All',
-  populationOrder: 'descending',
+  all: [],
+  search: '',
+  continent: 'Tous',
+  sortDir: 'desc',
   view: 'grid',
 };
 
-let searchTimerId;
-let mapInstance;
-let flagDefinitions;
-const paintedFlagIds = new Set();
+let mapInstance = null;
 
-function show(element) {
-  element.hidden = false;
+/* ---------- Data loading ---------- */
+
+async function loadCountries() {
+  showSkeletons(12);
+  hide(els.errorState);
+  hide(els.emptyState);
+
+  try {
+    const res = await fetch(`${API_BASE}/countries`);
+    if (!res.ok) throw new Error(`Réponse API ${res.status}`);
+    const data = await res.json();
+
+    state.all = data
+      .filter((c) => CONTINENTS.includes(c.region))
+      .sort((a, b) => b.population - a.population);
+
+    buildChips();
+    render();
+  } catch (err) {
+    console.error('Échec du chargement des pays :', err);
+    els.grid.innerHTML = '';
+    show(els.errorState);
+  }
 }
 
-function hide(element) {
-  element.hidden = true;
-}
+/* ---------- Filter controls ---------- */
 
-function escapeHtml(value) {
-  const element = document.createElement('span');
-  element.textContent = value ?? '';
-  return element.innerHTML;
-}
-
-function formatPopulation(population) {
-  return typeof population === 'number' ? population.toLocaleString('fr-FR') : 'Non renseignée';
-}
-
-function getLanguageLabel(languages) {
-  const names = (languages ?? []).map((language) => language.name).filter(Boolean);
-  if (names.length === 0) return 'Langue non renseignée';
-  if (names.length < 3) return names.join(', ');
-  return `${names.slice(0, 2).join(', ')} +${names.length - 2}`;
-}
-
-function getCoordinateLabel(latlng) {
-  const [latitude, longitude] = latlng ?? [];
-  if (latitude === undefined || longitude === undefined) return '';
-  const latitudeDirection = latitude >= 0 ? 'N' : 'S';
-  const longitudeDirection = longitude >= 0 ? 'E' : 'O';
-  return `${Math.abs(latitude).toFixed(1)}°${latitudeDirection} ${Math.abs(longitude).toFixed(1)}°${longitudeDirection}`;
-}
-
-function buildContinentChips() {
-  elements.continentChips.innerHTML = '';
-
-  CONTINENTS.forEach((continent) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'chip';
-    button.textContent = CONTINENT_LABELS[continent];
-    button.setAttribute('aria-pressed', String(continent === state.continent));
-    button.addEventListener('click', () => {
-      state.continent = continent;
-      buildContinentChips();
+function buildChips() {
+  els.chips.innerHTML = '';
+  CONTINENTS.forEach((region) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'chip';
+    btn.textContent = CONTINENT_LABELS[region];
+    btn.setAttribute('aria-pressed', region === state.continent ? 'true' : 'false');
+    btn.addEventListener('click', () => {
+      state.continent = region;
+      [...els.chips.children].forEach((c) => c.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
       render();
     });
-    elements.continentChips.appendChild(button);
+    els.chips.appendChild(btn);
   });
 }
+
+/* ---------- Data transformation ---------- */
 
 function getVisibleCountries() {
-  const normalizedQuery = state.query.trim().toLocaleLowerCase('fr-FR');
-  let countries = state.countries;
+  const query = state.search.trim().toLowerCase();
 
-  if (state.continent !== 'All') {
-    countries = countries.filter((country) => country.region === state.continent);
+  let list = state.all;
+
+  if (state.continent !== 'Tous') {
+    list = list.filter((c) => c.region === state.continent);
   }
 
-  if (normalizedQuery) {
-    countries = countries.filter((country) => country.name.toLocaleLowerCase('fr-FR').includes(normalizedQuery));
+  if (query) {
+    list = list.filter((c) => c.name.toLowerCase().includes(query));
   }
 
-  return [...countries].sort((firstCountry, secondCountry) => {
-    const firstPopulation = firstCountry.population ?? 0;
-    const secondPopulation = secondCountry.population ?? 0;
-    return state.populationOrder === 'descending'
-      ? secondPopulation - firstPopulation
-      : firstPopulation - secondPopulation;
-  });
+  list = [...list].sort((a, b) =>
+    state.sortDir === 'desc'
+      ? b.population - a.population
+      : a.population - b.population
+  );
+
+  return list;
 }
 
-function countryCardMarkup(country) {
-  const flagUrl = country.flags?.png || country.flags?.svg || '';
-  const coordinateLabel = getCoordinateLabel(country.latlng);
-  const location = [country.capital || 'Capitale non renseignée', CONTINENT_LABELS[country.region] || country.region]
-    .filter(Boolean)
-    .join(' · ');
+/* ---------- Rendering ---------- */
+
+function render() {
+  const list = getVisibleCountries();
+
+  els.resultsCount.textContent = `${list.length} pays trouvé${list.length > 1 ? 's' : ''}`;
+
+  if (list.length === 0) {
+    els.grid.innerHTML = '';
+    show(els.emptyState);
+    hide(els.grid);
+    hide(els.mapEl);
+    return;
+  }
+
+  hide(els.emptyState);
+
+  if (state.view === 'map') {
+    hide(els.grid);
+    show(els.mapEl);
+    renderMap(list);
+  } else {
+    show(els.grid);
+    hide(els.mapEl);
+    els.grid.innerHTML = list.map(countryCardHTML).join('');
+  }
+}
+
+function countryCardHTML(country) {
+  const flagSrc = country.flags?.png || country.flags?.svg || '';
+  const langs = (country.languages || []).map((l) => l.name);
+  const langLabel = langs.length > 2
+    ? `${langs.slice(0, 2).join(', ')} +${langs.length - 2}`
+    : langs.join(', ') || '—';
+
+  const [lat, lng] = country.latlng || [];
+  const coords = (lat !== undefined && lng !== undefined)
+    ? `${Math.abs(lat).toFixed(1)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lng).toFixed(1)}°${lng >= 0 ? 'E' : 'O'}`
+    : '';
 
   return `
-    <article class="country-card">
-      <div class="country-card__flag-wrap">
-        <img class="country-card__flag" src="${flagUrl}" alt="Drapeau du pays : ${escapeHtml(country.name)}" loading="lazy" width="360" height="240">
-        ${coordinateLabel ? `<span class="country-card__coordinates">${coordinateLabel}</span>` : ''}
+    <article class="card">
+      <div class="card__flag-wrap">
+        <img class="card__flag" src="${flagSrc}" alt="Drapeau : ${escapeHTML(country.name)}" loading="lazy" width="260" height="173">
+        ${coords ? `<span class="card__coords">${coords}</span>` : ''}
       </div>
-      <div class="country-card__body">
-        <h2 class="country-card__name">${escapeHtml(country.name)}</h2>
-        <p class="country-card__location">${escapeHtml(location)}</p>
-        <div class="country-card__details">
+      <div class="card__body">
+        <h2 class="card__name">${escapeHTML(country.name)}</h2>
+        <p class="card__meta">${escapeHTML(country.capital || 'Pas de capitale')} <span>·</span> ${CONTINENT_LABELS[country.region] || country.region}</p>
+        <div class="card__stats">
           <div>
-            <span class="country-card__label">Population</span>
-            <span class="country-card__population">${formatPopulation(country.population)}</span>
+            <span class="card__population-label">Population</span>
+            <span class="card__population">${country.population.toLocaleString('fr-FR')}</span>
           </div>
-          <span class="country-card__languages">${escapeHtml(getLanguageLabel(country.languages))}</span>
+          <span class="card__languages">${escapeHTML(langLabel)}</span>
         </div>
       </div>
     </article>
   `;
 }
 
-function renderSkeletons(count) {
-  elements.resultsCount.textContent = 'Chargement des pays...';
-  elements.grid.innerHTML = Array.from({ length: count }, () => `
-    <article class="country-card skeleton" aria-hidden="true">
-      <div class="skeleton__flag"></div>
-      <div class="skeleton__body">
-        <div class="skeleton__line skeleton__line--title"></div>
-        <div class="skeleton__line"></div>
-        <div class="skeleton__line skeleton__line--short"></div>
+function escapeHTML(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+/* ---------- Squelettes ---------- */
+
+function showSkeletons(count) {
+  els.resultsCount.textContent = '';
+  els.grid.innerHTML = Array.from({ length: count }, () => `
+    <article class="card skeleton">
+      <div class="card__flag-wrap"></div>
+      <div class="card__body">
+        <div class="sk-line sk-line--title"></div>
+        <div class="sk-line sk-line--short"></div>
+        <div class="sk-line sk-line--third"></div>
       </div>
     </article>
   `).join('');
 }
 
-function renderGrid(countries) {
-  elements.grid.innerHTML = countries.map(countryCardMarkup).join('');
-  show(elements.grid);
-  hide(elements.map);
-}
+/* ---------- Map view ---------- */
 
-function getFlagDefinitions() {
-  if (flagDefinitions) return flagDefinitions;
+const FALLBACK_FILL = '#1f2531';
+let flagDefs = null;
+const paintedFlagIds = new Set();
 
-  const svg = elements.map.querySelector('svg');
-  if (!svg) return null;
-
-  flagDefinitions = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  svg.prepend(flagDefinitions);
-  return flagDefinitions;
-}
-
-function getFlagPatternId(country) {
-  const patternId = `flag-${country.alpha2Code}`;
-  if (paintedFlagIds.has(patternId)) return patternId;
-
-  const definitions = getFlagDefinitions();
-  const flagUrl = country.flags?.png || country.flags?.svg;
-  if (!definitions || !flagUrl) return null;
-
-  const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-  pattern.setAttribute('id', patternId);
-  pattern.setAttribute('patternUnits', 'objectBoundingBox');
-  pattern.setAttribute('width', '1');
-  pattern.setAttribute('height', '1');
-
-  const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-  image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', flagUrl);
-  image.setAttribute('width', '1');
-  image.setAttribute('height', '1');
-  image.setAttribute('preserveAspectRatio', 'none');
-  pattern.appendChild(image);
-  definitions.appendChild(pattern);
-  paintedFlagIds.add(patternId);
-
-  return patternId;
-}
-
-function paintMap(countries) {
-  if (!mapInstance?.regions) return;
-  const visibleCountries = new Map(countries.map((country) => [country.alpha2Code, country]));
-
-  Object.entries(mapInstance.regions).forEach(([countryCode, region]) => {
-    const country = visibleCountries.get(countryCode);
-    const patternId = country ? getFlagPatternId(country) : null;
-    region.element?.shape?.setStyle('fill', patternId ? `url(#${patternId})` : '#2c5550');
-  });
-}
-
-function renderMap(countries) {
-  hide(elements.grid);
-  show(elements.map);
-
+function renderMap(list) {
   if (!mapInstance) {
     mapInstance = new jsVectorMap({
       selector: '#map',
@@ -218,83 +208,115 @@ function renderMap(countries) {
       backgroundColor: 'transparent',
       zoomButtons: true,
       regionStyle: {
-        initial: { fill: '#2c5550' },
-        hover: { fill: '#d6ad54' },
+        initial: { fill: FALLBACK_FILL },
+        hover: {},
+        selected: {},
       },
-      onRegionTooltipShow(event, tooltip, countryCode) {
-        const country = state.countries.find((item) => item.alpha2Code === countryCode);
-        if (!country) return;
-        tooltip.text(`${country.name} · ${formatPopulation(country.population)} habitants`);
+      onRegionTooltipShow(event, tooltip, code) {
+        const c = state.all.find((x) => x.alpha2Code === code);
+        if (c) tooltip.text(`${c.name} — ${c.population.toLocaleString('fr-FR')} hab.`);
+      },
+      onRegionClick(event, code) {
+        const c = state.all.find((x) => x.alpha2Code === code);
+        if (!c) return;
+        state.search = c.name;
+        els.searchInput.value = c.name;
+        state.view = 'grid';
+        els.viewBtn.setAttribute('aria-pressed', 'false');
+        els.viewLabel.textContent = 'Carte';
+        render();
       },
     });
   }
 
-  paintMap(countries);
+  paintFlags(list);
 }
 
-function render() {
-  const countries = getVisibleCountries();
-  const label = countries.length > 1 ? 'pays trouvés' : 'pays trouvé';
-  elements.resultsCount.textContent = `${countries.length} ${label}`;
-
-  if (countries.length === 0) {
-    elements.grid.innerHTML = '';
-    hide(elements.grid);
-    hide(elements.map);
-    show(elements.emptyState);
-    return;
-  }
-
-  hide(elements.emptyState);
-  if (state.view === 'map') renderMap(countries);
-  else renderGrid(countries);
+function ensureFlagDefs() {
+  if (flagDefs) return flagDefs;
+  const svg = document.querySelector('#map svg');
+  if (!svg) return null;
+  flagDefs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+  svg.prepend(flagDefs);
+  return flagDefs;
 }
 
-async function loadCountries() {
-  renderSkeletons(12);
-  hide(elements.errorState);
-  hide(elements.emptyState);
-  hide(elements.map);
-  show(elements.grid);
+function getFlagPatternId(country) {
+  const id = `flag-${country.alpha2Code}`;
+  if (paintedFlagIds.has(id)) return id;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/countries`);
-    if (!response.ok) throw new Error(`Unexpected response status: ${response.status}`);
+  const defs = ensureFlagDefs();
+  if (!defs) return null;
 
-    const data = await response.json();
-    state.countries = data.filter((country) => CONTINENTS.includes(country.region));
-    buildContinentChips();
+  const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+  pattern.setAttribute('id', id);
+  pattern.setAttribute('patternUnits', 'objectBoundingBox');
+  pattern.setAttribute('patternContentUnits', 'objectBoundingBox');
+  pattern.setAttribute('width', '1');
+  pattern.setAttribute('height', '1');
+
+  const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+  image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', country.flags?.png || country.flags?.svg || '');
+  image.setAttribute('x', '0');
+  image.setAttribute('y', '0');
+  image.setAttribute('width', '1');
+  image.setAttribute('height', '1');
+  image.setAttribute('preserveAspectRatio', 'none');
+
+  pattern.appendChild(image);
+  defs.appendChild(pattern);
+  paintedFlagIds.add(id);
+  return id;
+}
+
+function paintFlags(list) {
+  if (!mapInstance?.regions) return;
+  const visible = new Map(list.map((c) => [c.alpha2Code, c]));
+
+  Object.entries(mapInstance.regions).forEach(([code, region]) => {
+    const shape = region.element?.shape;
+    if (!shape) return;
+
+    const country = visible.get(code);
+    if (country && (country.flags?.png || country.flags?.svg)) {
+      const patternId = getFlagPatternId(country);
+      shape.setStyle('fill', patternId ? `url(#${patternId})` : FALLBACK_FILL);
+    } else {
+      shape.setStyle('fill', FALLBACK_FILL);
+    }
+  });
+}
+
+function show(el) { el.hidden = false; }
+function hide(el) { el.hidden = true; }
+
+/* ---------- Event listeners ---------- */
+
+let searchTimer = null;
+els.searchInput.addEventListener('input', (e) => {
+  clearTimeout(searchTimer);
+  const value = e.target.value;
+  searchTimer = setTimeout(() => {
+    state.search = value;
     render();
-  } catch (error) {
-    console.error('Unable to load countries:', error);
-    elements.grid.innerHTML = '';
-    hide(elements.grid);
-    show(elements.errorState);
-  }
-}
-
-elements.searchInput.addEventListener('input', (event) => {
-  clearTimeout(searchTimerId);
-  searchTimerId = window.setTimeout(() => {
-    state.query = event.target.value;
-    render();
-  }, 250);
+  }, 300);
 });
 
-elements.sortButton.addEventListener('click', () => {
-  state.populationOrder = state.populationOrder === 'descending' ? 'ascending' : 'descending';
-  elements.sortButton.dataset.direction = state.populationOrder === 'ascending' ? 'asc' : 'desc';
+els.sortBtn.addEventListener('click', () => {
+  state.sortDir = state.sortDir === 'desc' ? 'asc' : 'desc';
+  els.sortBtn.dataset.dir = state.sortDir;
   render();
 });
 
-elements.viewButton.addEventListener('click', () => {
+els.retryBtn.addEventListener('click', loadCountries);
+
+els.viewBtn.addEventListener('click', () => {
   state.view = state.view === 'grid' ? 'map' : 'grid';
-  const isMapView = state.view === 'map';
-  elements.viewButton.setAttribute('aria-pressed', String(isMapView));
-  elements.viewLabel.textContent = isMapView ? 'Voir la grille' : 'Voir la carte';
+  els.viewBtn.setAttribute('aria-pressed', state.view === 'map' ? 'true' : 'false');
+  els.viewLabel.textContent = state.view === 'map' ? 'Grille' : 'Carte';
   render();
 });
 
-elements.retryButton.addEventListener('click', loadCountries);
+/* ---------- Start ---------- */
 
 loadCountries();
