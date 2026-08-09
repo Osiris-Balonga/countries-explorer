@@ -112,7 +112,7 @@ body {
   gap: var(--space-3);
   padding: var(--space-4) 0;
   background: var(--bg);
-  border-bottom: 1px solid var(--border-soft);
+  border-bottom: 1px dashed var(--border-soft);
   margin-bottom: var(--space-6);
 }
 
@@ -265,6 +265,8 @@ body {
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -305,7 +307,7 @@ body {
   letter-spacing: .02em;
 }
 
-.card__body { padding: var(--space-4); }
+.card__body { display: flex; flex: 1; flex-direction: column; padding: var(--space-4); }
 .card__name {
   font-family: var(--font-display);
   font-weight: 600;
@@ -325,6 +327,7 @@ body {
   justify-content: space-between;
   align-items: baseline;
   padding-top: var(--space-3);
+  margin-top: auto;
   border-top: 1px dashed var(--border);
 }
 .card__population {

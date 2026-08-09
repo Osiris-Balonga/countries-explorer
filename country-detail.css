@@ -5,7 +5,7 @@
 .detail-nav__breadcrumb { margin: 0; color: var(--text-faint); font-family: var(--font-mono); font-size: .72rem; }
 .detail-root { max-width: 1180px; padding: 22px 16px 72px; margin: 0 auto; }
 
-.country-heading { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr); gap: clamp(28px, 6vw, 72px); align-items: end; padding: clamp(22px, 5vw, 58px) 0 52px; border-bottom: 1px solid var(--border); }
+.country-heading { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(330px, .9fr); gap: clamp(28px, 6vw, 72px); align-items: end; padding: clamp(22px, 5vw, 58px) 0 52px; border-bottom: 1px dashed var(--border); }
 .section-label { margin: 0 0 9px; color: var(--gold); font-family: var(--font-mono); font-size: .68rem; letter-spacing: .09em; text-transform: uppercase; }
 .country-heading h1 { max-width: 10ch; margin: 0; color: var(--text); font-family: var(--font-display); font-size: clamp(2.65rem, 7vw, 5.5rem); font-weight: 600; letter-spacing: -.035em; line-height: 1.04; text-wrap: balance; }
 .country-heading__native { min-height: 1.5em; margin: 12px 0 0; color: var(--text-muted); font-size: 1rem; }
@@ -19,13 +19,13 @@
 .country-flag-frame__coordinates { position: absolute; right: 12px; bottom: 12px; padding: 4px 8px; color: var(--gold); background: rgb(16 19 26 / 86%); border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: .67rem; }
 
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .75fr); gap: clamp(36px, 7vw, 88px); padding-top: 52px; }
-.detail-section { padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px solid var(--border); }
+.detail-section { padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px dashed var(--border); }
 .detail-section:last-child { border-bottom: 0; }
 .detail-section h2, .sidebar-card h2 { margin: 0 0 16px; color: var(--text); font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 1.7rem); font-weight: 600; letter-spacing: -.015em; }
 .detail-prose { max-width: 67ch; margin: 0; color: var(--text-muted); font-size: 1rem; line-height: 1.75; text-wrap: pretty; }
 .source-link { display: inline-flex; gap: 6px; align-items: center; margin-top: 16px; color: var(--gold); font-size: .87rem; font-weight: 600; text-decoration: none; }
 .identity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-.identity-grid div { min-height: 78px; padding: 14px; border-bottom: 1px solid var(--border); }
+.identity-grid div { min-height: 78px; padding: 14px; border-bottom: 1px dashed var(--border); }
 .identity-grid div:nth-child(odd) { border-right: 1px solid var(--border); }
 .identity-grid div:nth-last-child(-n + 2) { border-bottom: 0; }
 .identity-grid dd { font-size: .92rem; overflow-wrap: anywhere; }
@@ -57,7 +57,7 @@
 .weather-card__temperature { margin: 0; color: var(--text); font-family: var(--font-display); font-size: 3rem; font-weight: 600; line-height: 1; }
 .weather-card__description { margin: 7px 0 0; color: var(--text-muted); font-size: .9rem; }
 .weather-card__icon { color: var(--gold); font-size: 2.9rem; }
-.weather-card__wind { padding-top: 14px; margin: 18px 0 0; color: var(--text-faint); border-top: 1px solid var(--border); font-size: .8rem; }
+.weather-card__wind { padding-top: 14px; margin: 18px 0 0; color: var(--text-faint); border-top: 1px dashed var(--border); font-size: .8rem; }
 .indicator-grid { display: grid; grid-template-columns: 1fr 1fr; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .indicator-grid div { min-height: 88px; padding: 13px; }
 .indicator-grid div + div { border-left: 1px solid var(--border); }
@@ -82,7 +82,7 @@
 @media (max-width: 480px) {
   .country-summary { gap: 16px; margin-top: 28px; }
   .identity-grid { grid-template-columns: 1fr; }
-  .identity-grid div, .identity-grid div:nth-child(odd), .identity-grid div:nth-last-child(-n + 2) { border-right: 0; border-bottom: 1px solid var(--border); }
+  .identity-grid div, .identity-grid div:nth-child(odd), .identity-grid div:nth-last-child(-n + 2) { border-right: 0; border-bottom: 1px dashed var(--border); }
   .identity-grid div:last-child { border-bottom: 0; }
   .tag-list, .city-grid, .food-grid { grid-template-columns: 1fr; }
 }
