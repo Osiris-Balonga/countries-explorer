@@ -2,6 +2,17 @@
 
 Atlas est un explorateur de pays réalisé avec HTML, CSS et JavaScript natif. Il permet de consulter la liste des pays, de les rechercher, de les filtrer par continent, de les trier par population et de les explorer sur une carte.
 
+![Aperçu de la grille Atlas](assets/images/previews/atlas-grid.png)
+
+![Aperçu de la carte Atlas](assets/images/previews/atlas-map.png)
+
+![Aperçu de la fiche pays Atlas](assets/images/previews/atlas-detail.png)
+
+## Démo
+
+- GitHub Pages : https://osiris-balonga.github.io/countries-explorer/
+- Dépôt : https://github.com/Osiris-Balonga/countries-explorer
+
 ## Fonctionnalités
 
 - rechercher un pays par son nom
@@ -27,6 +38,8 @@ Puis visiter `http://localhost:8000`.
 
 ```text
 countries-explorer/
+|-- .github/workflows/deploy-pages.yml
+|-- assets/images/previews/
 |-- country-detail.css
 |-- country-detail.html
 |-- index.html
@@ -37,6 +50,8 @@ countries-explorer/
 |   |-- explorer-map.js
 |   `-- explorer.js
 |-- README.md
+|-- robots.txt
+|-- sitemap.xml
 `-- styles.css
 ```
 
@@ -58,6 +73,10 @@ countries-explorer/
 - [Wikidata](https://www.wikidata.org/wiki/Help:SPARQL) pour les grandes villes
 - [Nager.Date](https://date.nager.at/api) pour les jours fériés
 - [TheMealDB](https://themealdb.com/docs_api_guide.php) pour les spécialités culinaires des cuisines couvertes
+
+## Déploiement GitHub Pages
+
+Le workflow `.github/workflows/deploy-pages.yml` publie automatiquement le site statique à chaque mise à jour de `main`. GitHub Pages est configuré pour utiliser GitHub Actions, ce qui convient aux modules JavaScript et aux APIs appelées directement par le navigateur.
 
 ## Auteur
 
