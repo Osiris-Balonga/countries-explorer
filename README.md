@@ -38,7 +38,6 @@ Puis visiter `http://localhost:8000`.
 
 ```text
 countries-explorer/
-|-- .github/workflows/deploy-pages.yml
 |-- assets/images/previews/
 |-- country-detail.css
 |-- country-detail.html
@@ -76,7 +75,7 @@ countries-explorer/
 
 ## Déploiement GitHub Pages
 
-Le workflow `.github/workflows/deploy-pages.yml` publie automatiquement le site statique à chaque mise à jour de `main`. GitHub Pages est configuré pour utiliser GitHub Actions, ce qui convient aux modules JavaScript et aux APIs appelées directement par le navigateur.
+Le site est publié depuis la branche `main` et le dossier racine. Cette configuration convient à Atlas car les modules JavaScript et les APIs sont exécutés directement dans le navigateur. Le fichier `.nojekyll` évite tout traitement Jekyll.
 
 ## Auteur
 
