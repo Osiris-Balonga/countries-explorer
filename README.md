@@ -51,7 +51,9 @@ explorateur-pays/
 - [Open-Meteo](https://open-meteo.com/en/docs) pour la météo locale
 - [Banque mondiale](https://datahelpdesk.worldbank.org/knowledgebase/articles/889392) pour les indicateurs de développement
 - [Wikimedia](https://www.mediawiki.org/wiki/API:Cross-site_requests) pour le résumé encyclopédique
+- [Wikidata](https://www.wikidata.org/wiki/Help:SPARQL) pour les grandes villes
 - [Nager.Date](https://date.nager.at/api) pour les jours fériés
+- [TheMealDB](https://themealdb.com/docs_api_guide.php) pour les spécialités culinaires des cuisines couvertes
 - [Unsplash](https://unsplash.com/documentation) pour la galerie photo lorsqu'une clé d'accès est fournie
 
 ## Images Unsplash

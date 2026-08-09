@@ -2,6 +2,13 @@
 
 const COUNTRIES_API_URL = 'https://countries.dev/countries';
 const UNSPLASH_ACCESS_KEY = window.ATLAS_UNSPLASH_ACCESS_KEY || '';
+const CUISINE_AREAS = {
+  DZ: 'Algerian', CA: 'Canadian', CN: 'Chinese', HR: 'Croatian', NL: 'Dutch', EG: 'Egyptian',
+  FR: 'French', GR: 'Greek', IN: 'Indian', IE: 'Irish', IT: 'Italian', JM: 'Jamaican', JP: 'Japanese',
+  KE: 'Kenyan', MY: 'Malaysian', MX: 'Mexican', MA: 'Moroccan', PL: 'Polish', PT: 'Portuguese',
+  RU: 'Russian', SK: 'Slovak', ES: 'Spanish', TH: 'Thai', TN: 'Tunisian', TR: 'Turkish',
+  UA: 'Ukrainian', GB: 'British', US: 'American', VN: 'Vietnamese', KR: 'Korean', PH: 'Filipino', SY: 'Syrian',
+};
 const CONTINENT_LABELS = {
   Africa: 'Afrique',
   Americas: 'Amériques',
@@ -36,6 +43,8 @@ const elements = {
   galleryCredit: document.getElementById('gallery-credit'),
   foodSection: document.getElementById('food-section'),
   foodGrid: document.getElementById('food-grid'),
+  citySection: document.getElementById('city-section'),
+  cityGrid: document.getElementById('city-grid'),
   weatherCard: document.getElementById('weather-card'),
   weatherTemperature: document.getElementById('weather-temperature'),
   weatherDescription: document.getElementById('weather-description'),
@@ -58,6 +67,17 @@ function getCoordinates(latlng) {
   const [latitude, longitude] = latlng || [];
   if (latitude === undefined || longitude === undefined) return 'Non renseignées';
   return `${Math.abs(latitude).toFixed(1)}°${latitude >= 0 ? 'N' : 'S'} ${Math.abs(longitude).toFixed(1)}°${longitude >= 0 ? 'E' : 'O'}`;
+}
+
+function shortenDescription(value, maxLength = 440) {
+  const sentences = value.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [];
+  let result = '';
+  for (const sentence of sentences.slice(0, 3)) {
+    const candidate = `${result}${result ? ' ' : ''}${sentence.trim()}`;
+    if (candidate.length > maxLength) break;
+    result = candidate;
+  }
+  return result || value.slice(0, maxLength).trim();
 }
 
 function renderCountry(country, countries) {
@@ -102,7 +122,7 @@ async function loadWikipediaSummary(country) {
     action: 'query',
     format: 'json',
     origin: '*',
-    prop: 'extracts|info|pageimages',
+    prop: 'extracts|info|pageimages|pageprops',
     exintro: '1',
     explaintext: '1',
     inprop: 'url',
@@ -117,7 +137,7 @@ async function loadWikipediaSummary(country) {
     const data = await response.json();
     const page = Object.values(data.query?.pages || {})[0];
     if (!page?.extract) throw new Error('Wikipedia summary unavailable');
-    elements.description.textContent = page.extract;
+    elements.description.textContent = shortenDescription(page.extract);
     elements.wikiLink.href = page.fullurl;
     show(elements.wikiLink);
     return page;
@@ -125,10 +145,6 @@ async function loadWikipediaSummary(country) {
     elements.description.textContent = 'Aucun résumé encyclopédique n’est disponible pour le moment.';
     return null;
   }
-}
-
-function slugify(value) {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/[^a-z0-9]+/g, '-');
 }
 
 function renderGallery(photos, fallbackPage) {
@@ -177,21 +193,53 @@ async function loadGallery(country, fallbackPage) {
   }
 }
 
-async function loadFood(country) {
+async function queryWikidata(query) {
+  const response = await fetch(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`, {
+    headers: { Accept: 'application/sparql-results+json' },
+  });
+  if (!response.ok) throw new Error('Wikidata request failed');
+  const data = await response.json();
+  return data.results?.bindings || [];
+}
+
+async function loadCities(country, wikidataPage) {
+  const countryId = wikidataPage?.pageprops?.wikibase_item;
+  if (!/^Q\d+$/.test(countryId || '')) return;
+  const query = `
+    SELECT ?city ?cityLabel ?population WHERE {
+      ?city wdt:P31 wd:Q515;
+            wdt:P17 wd:${countryId};
+            wdt:P1082 ?population.
+      SERVICE wikibase:label { bd:serviceParam wikibase:language "fr,en". }
+    }
+    ORDER BY DESC(?population)
+    LIMIT 6
+  `;
   try {
-    const countryTag = slugify(country.name);
-    const query = new URLSearchParams({
-      countries_tags_en: countryTag,
-      fields: 'product_name,image_front_small_url',
-      page_size: '6',
-    });
-    const response = await fetch(`https://world.openfoodfacts.org/api/v2/search?${query}`);
-    if (!response.ok) throw new Error('Food request failed');
+    const rows = await queryWikidata(query);
+    const displayedCities = rows.filter((row) => row.cityLabel?.value).slice(0, 5)
+      .map((row) => ({ name: row.cityLabel.value, population: Number(row.population?.value) || null }));
+    if (displayedCities.length === 0) return;
+    elements.cityGrid.innerHTML = displayedCities.map((city) => `
+      <article class="city-item"><i class="ri-building-2-line" aria-hidden="true"></i><div><strong>${escapeHtml(city.name)}</strong><small>${formatNumber(city.population)} hab.</small></div></article>
+    `).join('');
+    show(elements.citySection);
+  } catch (error) {
+    hide(elements.citySection);
+  }
+}
+
+async function loadFood(country) {
+  const cuisineArea = CUISINE_AREAS[country.alpha2Code];
+  if (!cuisineArea) return;
+  try {
+    const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(cuisineArea)}`);
+    if (!response.ok) throw new Error('Meal request failed');
     const data = await response.json();
-    const products = (data.products || []).filter((product) => product.product_name && product.image_front_small_url).slice(0, 6);
-    if (products.length === 0) return;
-    elements.foodGrid.innerHTML = products.map((product) => `
-      <article class="food-item"><img src="${product.image_front_small_url}" alt="${escapeHtml(product.product_name)}" loading="lazy"><span>${escapeHtml(product.product_name)}</span></article>
+    const meals = (data.meals || []).filter((meal) => meal.strMeal && meal.strMealThumb).slice(0, 6);
+    if (meals.length === 0) return;
+    elements.foodGrid.innerHTML = meals.map((meal) => `
+      <article class="food-item"><img src="${meal.strMealThumb}" alt="${escapeHtml(meal.strMeal)}" loading="lazy"><span>${escapeHtml(meal.strMeal)}</span></article>
     `).join('');
     show(elements.foodSection);
   } catch (error) {
@@ -306,7 +354,7 @@ async function init() {
     hide(elements.loading);
     show(elements.root);
     const wikipediaPage = await loadWikipediaSummary(country);
-    await Promise.allSettled([loadGallery(country, wikipediaPage), loadFood(country), loadWeather(country), loadIndicators(country), loadHolidays(country)]);
+    await Promise.allSettled([loadGallery(country, wikipediaPage), loadCities(country, wikipediaPage), loadFood(country), loadWeather(country), loadIndicators(country), loadHolidays(country)]);
   } catch (error) {
     hide(elements.loading);
     show(elements.error);

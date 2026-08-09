@@ -42,6 +42,12 @@
 .border-item:hover { background: var(--surface-hover); border-color: var(--text-faint); }
 .border-item img { width: 30px; height: 20px; flex: 0 0 auto; object-fit: cover; border-radius: 2px; }
 .border-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.city-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.city-item { display: flex; gap: 11px; align-items: center; min-width: 0; padding: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.city-item i { display: grid; width: 32px; height: 32px; flex: 0 0 auto; place-items: center; color: var(--gold); background: var(--surface-hover); border-radius: 6px; font-size: 1rem; }
+.city-item strong, .city-item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.city-item strong { color: var(--text); font-size: .88rem; }
+.city-item small { margin-top: 2px; color: var(--text-faint); font-size: .75rem; }
 .food-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .food-item { display: flex; gap: 12px; align-items: center; min-width: 0; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .food-item img { width: 52px; height: 52px; flex: 0 0 auto; object-fit: cover; border-radius: 6px; }
@@ -88,6 +94,6 @@
   .identity-grid { grid-template-columns: 1fr; }
   .identity-grid div, .identity-grid div:nth-child(odd), .identity-grid div:nth-last-child(-n + 2) { border-right: 0; border-bottom: 1px solid var(--border); }
   .identity-grid div:last-child { border-bottom: 0; }
-  .tag-list, .food-grid { grid-template-columns: 1fr; }
+  .tag-list, .city-grid, .food-grid { grid-template-columns: 1fr; }
   .country-gallery__grid { height: 210px; }
 }
