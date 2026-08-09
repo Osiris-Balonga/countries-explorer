@@ -41,6 +41,7 @@ const state = {
 };
 
 let mapInstance = null;
+let mapLoading = false;
 
 /* ---------- Data loading ---------- */
 
@@ -194,6 +195,14 @@ function showSkeletons(count) {
   `).join('');
 }
 
+function showMapSkeleton() {
+  els.mapEl.innerHTML = `
+    <div class="map-skeleton" aria-label="Chargement de la carte">
+      ${Array.from({ length: 18 }, () => '<span class="map-skeleton__block"></span>').join('')}
+    </div>
+  `;
+}
+
 /* ---------- Map view ---------- */
 
 const FALLBACK_FILL = '#1f2531';
@@ -201,7 +210,11 @@ let flagDefs = null;
 const paintedFlagIds = new Set();
 
 function renderMap(list) {
-  if (!mapInstance) {
+  if (!mapInstance && !mapLoading) {
+    mapLoading = true;
+    showMapSkeleton();
+    setTimeout(() => {
+      els.mapEl.innerHTML = '';
     mapInstance = new jsVectorMap({
       selector: '#map',
       map: 'world',
@@ -227,6 +240,13 @@ function renderMap(list) {
         render();
       },
     });
+      mapLoading = false;
+      paintFlags(getVisibleCountries());
+    }, 550);
+  }
+
+  if (mapLoading) {
+    return;
   }
 
   paintFlags(list);
@@ -305,6 +325,7 @@ els.searchInput.addEventListener('input', (e) => {
 els.sortBtn.addEventListener('click', () => {
   state.sortDir = state.sortDir === 'desc' ? 'asc' : 'desc';
   els.sortBtn.dataset.dir = state.sortDir;
+  document.getElementById('sort-icon').className = state.sortDir === 'asc' ? 'ri-sort-asc' : 'ri-sort-desc';
   render();
 });
 
@@ -314,6 +335,7 @@ els.viewBtn.addEventListener('click', () => {
   state.view = state.view === 'grid' ? 'map' : 'grid';
   els.viewBtn.setAttribute('aria-pressed', state.view === 'map' ? 'true' : 'false');
   els.viewLabel.textContent = state.view === 'map' ? 'Grille' : 'Carte';
+  document.getElementById('view-icon').className = state.view === 'map' ? 'ri-layout-grid-line' : 'ri-map-2-line';
   render();
 });
 
@@ -323,6 +345,7 @@ mobileViewport.addEventListener('change', (event) => {
   state.view = 'grid';
   els.viewBtn.setAttribute('aria-pressed', 'false');
   els.viewLabel.textContent = 'Carte';
+  document.getElementById('view-icon').className = 'ri-map-2-line';
   render();
 });
 

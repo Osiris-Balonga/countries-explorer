@@ -200,8 +200,7 @@ body {
   transition: border-color .15s var(--ease), background .15s var(--ease);
 }
 .sort-btn:hover { background: var(--surface-hover); border-color: var(--text-faint); }
-.sort-btn__arrow { transition: transform .2s var(--ease); color: var(--gold); }
-.sort-btn[data-dir="asc"] .sort-btn__arrow { transform: rotate(180deg); }
+.sort-btn i { color: var(--gold); font-size: 15px; }
 
 .view-btn {
   flex-shrink: 0;
@@ -258,6 +257,8 @@ body {
   color: var(--text) !important;
   border: 1px solid var(--border) !important;
 }
+.jvm-zoomin { top: 14px !important; }
+.jvm-zoomout { top: 54px !important; }
 
 .results-count {
   font-family: var(--font-mono);
@@ -372,6 +373,20 @@ body {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+.map-skeleton {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  height: 100%;
+  padding: 32px;
+}
+.map-skeleton__block {
+  min-height: 78px;
+  background: linear-gradient(100deg, var(--surface-hover) 30%, #252c3a 50%, var(--surface-hover) 70%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.6s ease-in-out infinite;
+}
 
 /* ============ États vide / erreur ============ */
 .state-panel {
@@ -438,5 +453,6 @@ body {
   .sort-btn { justify-content: center; }
   .view-btn,
   .map-wrap { display: none !important; }
+  .map-skeleton { grid-template-columns: repeat(3, 1fr); padding: 20px; }
   .hero { padding: var(--space-10) var(--space-4) var(--space-6); }
 }

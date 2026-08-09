@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsvectormap@1.5.3/dist/css/jsvectormap.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -34,13 +35,12 @@
 
       <button class="sort-btn" id="sort-btn" type="button" aria-label="Trier par population">
         <span id="sort-label">Population</span>
-        <svg id="sort-arrow" class="sort-btn__arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-          <path d="M6 2v8M6 10L2.5 6.5M6 10l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-        </svg>
+        <i id="sort-icon" class="ri-sort-desc" aria-hidden="true"></i>
       </button>
 
       <button class="view-btn" id="view-btn" type="button" aria-pressed="false">
         <span id="view-label">Carte</span>
+        <i id="view-icon" class="ri-map-2-line" aria-hidden="true"></i>
       </button>
     </section>
 
