@@ -54,13 +54,6 @@ explorateur-pays/
 - [Wikidata](https://www.wikidata.org/wiki/Help:SPARQL) pour les grandes villes
 - [Nager.Date](https://date.nager.at/api) pour les jours fériés
 - [TheMealDB](https://themealdb.com/docs_api_guide.php) pour les spécialités culinaires des cuisines couvertes
-- [Unsplash](https://unsplash.com/documentation) pour la galerie photo lorsqu'une clé d'accès est fournie
-
-## Images Unsplash
-
-La fiche reste fonctionnelle sans clé Unsplash : elle affiche l'image disponible sur Wikimedia ou masque la galerie lorsqu'aucune image n'est exploitable.
-
-Pour activer la recherche de photos Unsplash, fournir la clé d'accès de l'application au chargement de la page dans `window.ATLAS_UNSPLASH_ACCESS_KEY`. La clé ne doit pas être ajoutée au dépôt. Les photos affichées conservent le lien d'attribution vers leur auteur et Unsplash.
 
 ## Auteur
 
