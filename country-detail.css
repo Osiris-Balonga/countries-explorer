@@ -17,6 +17,14 @@
 .country-flag-frame::after { position: absolute; inset: 0; border: 1px solid rgb(255 255 255 / 8%); border-radius: inherit; content: ""; pointer-events: none; }
 .country-flag-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .country-flag-frame__coordinates { position: absolute; right: 12px; bottom: 12px; padding: 4px 8px; color: var(--gold); background: rgb(16 19 26 / 86%); border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: .67rem; }
+.country-gallery { padding: 28px 0 0; }
+.country-gallery__grid { display: grid; grid-template-columns: 1.8fr repeat(3, 1fr); gap: 10px; height: 260px; overflow: hidden; border-radius: var(--radius); }
+.country-gallery__figure { position: relative; min-width: 0; margin: 0; overflow: hidden; background: var(--surface); }
+.country-gallery__figure img { width: 100%; height: 100%; object-fit: cover; transition: transform .25s var(--ease); }
+.country-gallery__figure:hover img { transform: scale(1.04); }
+.country-gallery__figure:first-child { grid-row: span 1; }
+.country-gallery__credit { margin: 10px 0 0; color: var(--text-faint); font-size: .72rem; }
+.country-gallery__credit a { color: var(--text-muted); }
 
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .75fr); gap: clamp(36px, 7vw, 88px); padding-top: 52px; }
 .detail-section { padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px solid var(--border); }
@@ -29,8 +37,15 @@
 .identity-grid div:nth-child(odd) { border-right: 1px solid var(--border); }
 .identity-grid div:nth-last-child(-n + 2) { border-bottom: 0; }
 .identity-grid dd { font-size: .92rem; overflow-wrap: anywhere; }
-.tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
-.tag { padding: 7px 11px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); font-size: .83rem; }
+.tag-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.border-item { display: flex; gap: 10px; align-items: center; min-width: 0; padding: 9px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: .85rem; text-decoration: none; transition: border-color .15s var(--ease), background .15s var(--ease); }
+.border-item:hover { background: var(--surface-hover); border-color: var(--text-faint); }
+.border-item img { width: 30px; height: 20px; flex: 0 0 auto; object-fit: cover; border-radius: 2px; }
+.border-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.food-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.food-item { display: flex; gap: 12px; align-items: center; min-width: 0; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.food-item img { width: 52px; height: 52px; flex: 0 0 auto; object-fit: cover; border-radius: 6px; }
+.food-item span { overflow: hidden; color: var(--text); font-size: .9rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .holiday-list { display: grid; gap: 1px; padding: 0; margin: 0; overflow: hidden; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-sm); list-style: none; }
 .holiday-list li { display: grid; grid-template-columns: 74px 1fr; gap: 16px; padding: 13px 15px; background: var(--surface); }
 .holiday-list time { color: var(--gold); font-family: var(--font-mono); font-size: .74rem; }
@@ -65,10 +80,14 @@
   .country-heading { padding-top: 20px; }
   .country-flag-frame { max-width: 560px; }
   .detail-sidebar { position: static; }
+  .country-gallery__grid { grid-template-columns: 1.5fr 1fr; height: 250px; }
+  .country-gallery__figure:nth-child(n + 3) { display: none; }
 }
 @media (max-width: 480px) {
   .country-summary { gap: 16px; margin-top: 28px; }
   .identity-grid { grid-template-columns: 1fr; }
   .identity-grid div, .identity-grid div:nth-child(odd), .identity-grid div:nth-last-child(-n + 2) { border-right: 0; border-bottom: 1px solid var(--border); }
   .identity-grid div:last-child { border-bottom: 0; }
+  .tag-list, .food-grid { grid-template-columns: 1fr; }
+  .country-gallery__grid { height: 210px; }
 }
