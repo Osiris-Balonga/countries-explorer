@@ -1,6 +1,5 @@
-'use strict';
-
-const API_BASE = 'https://countries.dev';
+import { fetchCountries } from './country-service.js';
+import { createMapRenderer } from './explorer-map.js';
 
 const CONTINENTS = ['Tous', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
 const CONTINENT_LABELS = {
@@ -35,18 +34,13 @@ const state = {
   view: 'grid',
 };
 
-let mapInstance = null;
-let mapLoading = false;
-
 async function loadCountries() {
   showSkeletons(12);
   hide(els.errorState);
   hide(els.emptyState);
 
   try {
-    const res = await fetch(`${API_BASE}/countries`);
-    if (!res.ok) throw new Error(`Réponse API ${res.status}`);
-    const data = await res.json();
+    const data = await fetchCountries();
 
     state.all = data
       .filter((c) => CONTINENTS.includes(c.region))
@@ -119,7 +113,7 @@ function render() {
   if (state.view === 'map') {
     hide(els.grid);
     show(els.mapEl);
-    renderMap(list);
+    mapRenderer.render(list);
   } else {
     show(els.grid);
     hide(els.mapEl);
@@ -188,107 +182,24 @@ function showMapSkeleton() {
   `;
 }
 
-const FALLBACK_FILL = '#1f2531';
-let flagDefs = null;
-const paintedFlagIds = new Set();
-
-function renderMap(list) {
-  if (!mapInstance && !mapLoading) {
-    mapLoading = true;
-    showMapSkeleton();
-    setTimeout(() => {
-      els.mapEl.innerHTML = '';
-    mapInstance = new jsVectorMap({
-      selector: '#map',
-      map: 'world',
-      backgroundColor: 'transparent',
-      zoomButtons: true,
-      regionStyle: {
-        initial: { fill: FALLBACK_FILL },
-        hover: {},
-        selected: {},
-      },
-      onRegionTooltipShow(event, tooltip, code) {
-        const c = state.all.find((x) => x.alpha2Code === code);
-        if (c) tooltip.text(`${c.name} - ${c.population.toLocaleString('fr-FR')} hab.`);
-      },
-      onRegionClick(event, code) {
-        const c = state.all.find((x) => x.alpha2Code === code);
-        if (!c) return;
-        state.search = c.name;
-        els.searchInput.value = c.name;
-        state.view = 'grid';
-        els.viewBtn.setAttribute('aria-pressed', 'false');
-        els.viewLabel.textContent = 'Carte';
-        render();
-      },
-    });
-      mapLoading = false;
-      paintFlags(getVisibleCountries());
-    }, 550);
-  }
-
-  if (mapLoading) {
-    return;
-  }
-
-  paintFlags(list);
-}
-
-function ensureFlagDefs() {
-  if (flagDefs) return flagDefs;
-  const svg = document.querySelector('#map svg');
-  if (!svg) return null;
-  flagDefs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-  svg.prepend(flagDefs);
-  return flagDefs;
-}
-
-function getFlagPatternId(country) {
-  const id = `flag-${country.alpha2Code}`;
-  if (paintedFlagIds.has(id)) return id;
-
-  const defs = ensureFlagDefs();
-  if (!defs) return null;
-
-  const pattern = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
-  pattern.setAttribute('id', id);
-  pattern.setAttribute('patternUnits', 'objectBoundingBox');
-  pattern.setAttribute('patternContentUnits', 'objectBoundingBox');
-  pattern.setAttribute('width', '1');
-  pattern.setAttribute('height', '1');
-
-  const image = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-  image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', country.flags?.png || country.flags?.svg || '');
-  image.setAttribute('x', '0');
-  image.setAttribute('y', '0');
-  image.setAttribute('width', '1');
-  image.setAttribute('height', '1');
-  image.setAttribute('preserveAspectRatio', 'none');
-
-  pattern.appendChild(image);
-  defs.appendChild(pattern);
-  paintedFlagIds.add(id);
-  return id;
-}
-
-function paintFlags(list) {
-  if (!mapInstance?.regions) return;
-  const visible = new Map(list.map((c) => [c.alpha2Code, c]));
-
-  Object.entries(mapInstance.regions).forEach(([code, region]) => {
-    const shape = region.element?.shape;
-    if (!shape) return;
-
-    const country = visible.get(code);
-    if (country && (country.flags?.png || country.flags?.svg)) {
-      const patternId = getFlagPatternId(country);
-      shape.setStyle('fill', patternId ? `url(#${patternId})` : FALLBACK_FILL);
-    } else {
-      shape.setStyle('fill', FALLBACK_FILL);
-    }
-  });
-}
+const mapRenderer = createMapRenderer({
+  mapElement: els.mapEl,
+  getCountry(code) {
+    return code
+      ? state.all.find((country) => country.alpha2Code === code)
+      : getVisibleCountries();
+  },
+  onCountrySelect(country) {
+    state.search = country.name;
+    els.searchInput.value = country.name;
+    state.view = 'grid';
+    els.viewBtn.setAttribute('aria-pressed', 'false');
+    els.viewLabel.textContent = 'Carte';
+    document.getElementById('view-icon').className = 'ri-map-2-line';
+    render();
+  },
+  showLoading: showMapSkeleton,
+});
 
 function show(el) { el.hidden = false; }
 function hide(el) { el.hidden = true; }

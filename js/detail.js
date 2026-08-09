@@ -1,17 +1,14 @@
-'use strict';
-
-const COUNTRIES_API_URL = 'https://countries.dev/countries';
-const WIKIPEDIA_TITLES = {
-  CD: 'République démocratique du Congo',
-  CG: 'République du Congo',
-};
-const CUISINE_AREAS = {
-  DZ: 'Algerian', CA: 'Canadian', CN: 'Chinese', HR: 'Croatian', NL: 'Dutch', EG: 'Egyptian',
-  FR: 'French', GR: 'Greek', IN: 'Indian', IE: 'Irish', IT: 'Italian', JM: 'Jamaican', JP: 'Japanese',
-  KE: 'Kenyan', MY: 'Malaysian', MX: 'Mexican', MA: 'Moroccan', PL: 'Polish', PT: 'Portuguese',
-  RU: 'Russian', SK: 'Slovak', ES: 'Spanish', TH: 'Thai', TN: 'Tunisian', TR: 'Turkish',
-  UA: 'Ukrainian', GB: 'British', US: 'American', VN: 'Vietnamese', KR: 'Korean', PH: 'Filipino', SY: 'Syrian',
-};
+import { fetchCountries } from './country-service.js';
+import {
+  CUISINE_AREAS,
+  WIKIPEDIA_TITLES,
+  fetchHolidays,
+  fetchIndicator,
+  fetchMeals,
+  fetchWeather,
+  fetchWikipediaPage,
+  queryWikidata,
+} from './detail-service.js';
 const CONTINENT_LABELS = {
   Africa: 'Afrique',
   Americas: 'Amériques',
@@ -122,23 +119,8 @@ function renderCountry(country, countries) {
 }
 
 async function loadWikipediaSummary(country) {
-  const query = new URLSearchParams({
-    action: 'query',
-    format: 'json',
-    origin: '*',
-    prop: 'extracts|info|pageprops',
-    exintro: '1',
-    explaintext: '1',
-    inprop: 'url',
-    redirects: '1',
-    titles: getWikipediaTitle(country),
-  });
-
   try {
-    const response = await fetch(`https://fr.wikipedia.org/w/api.php?${query}`);
-    if (!response.ok) throw new Error('Wikipedia request failed');
-    const data = await response.json();
-    const page = Object.values(data.query?.pages || {})[0];
+    const page = await fetchWikipediaPage(getWikipediaTitle(country));
     if (!page?.extract) throw new Error('Wikipedia summary unavailable');
     elements.description.textContent = shortenDescription(page.extract);
     elements.wikiLink.href = page.fullurl;
@@ -148,15 +130,6 @@ async function loadWikipediaSummary(country) {
     elements.description.textContent = 'Aucun résumé encyclopédique n’est disponible pour le moment.';
     return null;
   }
-}
-
-async function queryWikidata(query) {
-  const response = await fetch(`https://query.wikidata.org/sparql?format=json&query=${encodeURIComponent(query)}`, {
-    headers: { Accept: 'application/sparql-results+json' },
-  });
-  if (!response.ok) throw new Error('Wikidata request failed');
-  const data = await response.json();
-  return data.results?.bindings || [];
 }
 
 async function loadCities(country, wikidataPage) {
@@ -190,10 +163,7 @@ async function loadFood(country) {
   const cuisineArea = CUISINE_AREAS[country.alpha2Code];
   if (!cuisineArea) return;
   try {
-    const response = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?a=${encodeURIComponent(cuisineArea)}`);
-    if (!response.ok) throw new Error('Meal request failed');
-    const data = await response.json();
-    const meals = (data.meals || []).filter((meal) => meal.strMeal && meal.strMealThumb).slice(0, 6);
+    const meals = (await fetchMeals(cuisineArea)).filter((meal) => meal.strMeal && meal.strMealThumb).slice(0, 6);
     if (meals.length === 0) return;
     elements.foodGrid.innerHTML = meals.map((meal) => `
       <article class="food-item"><img src="${meal.strMealThumb}" alt="${escapeHtml(meal.strMeal)}" loading="lazy"><span>${escapeHtml(meal.strMeal)}</span></article>
@@ -222,17 +192,7 @@ async function loadWeather(country) {
   }
 
   try {
-    const query = new URLSearchParams({
-      latitude,
-      longitude,
-      current: 'temperature_2m,weather_code,wind_speed_10m',
-      timezone: 'auto',
-    });
-    const response = await fetch(`https://api.open-meteo.com/v1/forecast?${query}`);
-    if (!response.ok) throw new Error('Weather request failed');
-    const data = await response.json();
-    const current = data.current;
-    if (!current) throw new Error('Weather data unavailable');
+    const current = await fetchWeather(latitude, longitude);
     const [description, icon] = getWeatherPresentation(current.weather_code);
     elements.weatherTemperature.textContent = `${Math.round(current.temperature_2m)}°C`;
     elements.weatherDescription.textContent = `${country.capital || country.name} · ${description}`;
@@ -241,15 +201,6 @@ async function loadWeather(country) {
   } catch (error) {
     hide(elements.weatherCard);
   }
-}
-
-async function fetchIndicator(countryCode, indicatorCode) {
-  const response = await fetch(`https://api.worldbank.org/v2/country/${countryCode}/indicator/${indicatorCode}?format=json&per_page=60`);
-  if (!response.ok) throw new Error('Indicator request failed');
-  const data = await response.json();
-  const point = data[1]?.find((item) => item.value !== null);
-  if (!point) throw new Error('Indicator unavailable');
-  return point.value;
 }
 
 async function loadIndicators(country) {
@@ -269,12 +220,6 @@ async function loadIndicators(country) {
     <div><dt>Espérance de vie</dt><dd>${lifeValue}</dd></div>
     <div><dt>PIB par habitant</dt><dd>${gdpValue}</dd></div>
   `;
-}
-
-async function fetchHolidays(year, countryCode) {
-  const response = await fetch(`https://date.nager.at/api/v4/Holidays/${countryCode}/${year}`);
-  if (!response.ok) throw new Error('Holiday request failed');
-  return response.json();
 }
 
 function getHolidayKey(name) {
@@ -342,9 +287,7 @@ async function init() {
   }
 
   try {
-    const response = await fetch(COUNTRIES_API_URL);
-    if (!response.ok) throw new Error('Country request failed');
-    const countries = await response.json();
+    const countries = await fetchCountries();
     const country = countries.find((item) => item.alpha2Code?.toLowerCase() === countryCode.toLowerCase());
     if (!country) throw new Error('Country unavailable');
     renderCountry(country, countries);

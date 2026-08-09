@@ -26,19 +26,23 @@ Puis visiter `http://localhost:8000`.
 ## Organisation
 
 ```text
-explorateur-pays/
-|-- countries.js
+countries-explorer/
 |-- country-detail.css
 |-- country-detail.html
-|-- country-detail.js
 |-- index.html
+|-- js/
+|   |-- country-service.js
+|   |-- detail-service.js
+|   |-- detail.js
+|   |-- explorer-map.js
+|   `-- explorer.js
 |-- README.md
 `-- styles.css
 ```
 
-`countries.js` garde les responsabilités du projet dans un fichier organisé par sections : chargement des données, transformation de la liste, rendu, carte et interactions. Cette organisation est adaptée à une seule page et évite de multiplier les fichiers sans nécessité.
+`country-service.js` centralise le chargement du catalogue. `explorer.js` orchestre l'état, les filtres et le rendu de la liste, tandis que `explorer-map.js` ne gère que la carte et ses drapeaux.
 
-`country-detail.js` est réservé à la fiche pays. Il charge les données de base puis lance indépendamment les requêtes complémentaires, afin que la fiche reste utilisable même lorsqu'un service tiers est indisponible.
+`detail.js` rend la fiche pays et coordonne ses états d'interface. `detail-service.js` isole les requêtes vers les APIs complémentaires afin qu'une indisponibilité ponctuelle n'empêche pas l'affichage des autres données.
 
 ## Technologies et données
 
