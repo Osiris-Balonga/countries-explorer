@@ -1,7 +1,10 @@
 'use strict';
 
 const COUNTRIES_API_URL = 'https://countries.dev/countries';
-const UNSPLASH_ACCESS_KEY = window.ATLAS_UNSPLASH_ACCESS_KEY || '';
+const WIKIPEDIA_TITLES = {
+  CD: 'République démocratique du Congo',
+  CG: 'République du Congo',
+};
 const CUISINE_AREAS = {
   DZ: 'Algerian', CA: 'Canadian', CN: 'Chinese', HR: 'Croatian', NL: 'Dutch', EG: 'Egyptian',
   FR: 'French', GR: 'Greek', IN: 'Indian', IE: 'Irish', IT: 'Italian', JM: 'Jamaican', JP: 'Japanese',
@@ -38,9 +41,6 @@ const elements = {
   holidaySection: document.getElementById('holiday-section'),
   holidayList: document.getElementById('holiday-list'),
   holidaysTitle: document.getElementById('holidays-title'),
-  gallerySection: document.getElementById('gallery-section'),
-  galleryGrid: document.getElementById('gallery-grid'),
-  galleryCredit: document.getElementById('gallery-credit'),
   foodSection: document.getElementById('food-section'),
   foodGrid: document.getElementById('food-grid'),
   citySection: document.getElementById('city-section'),
@@ -78,6 +78,10 @@ function shortenDescription(value, maxLength = 440) {
     result = candidate;
   }
   return result || value.slice(0, maxLength).trim();
+}
+
+function getWikipediaTitle(country) {
+  return WIKIPEDIA_TITLES[country.alpha2Code] || country.translations?.fr || country.name;
 }
 
 function renderCountry(country, countries) {
@@ -122,13 +126,12 @@ async function loadWikipediaSummary(country) {
     action: 'query',
     format: 'json',
     origin: '*',
-    prop: 'extracts|info|pageimages|pageprops',
+    prop: 'extracts|info|pageprops',
     exintro: '1',
     explaintext: '1',
     inprop: 'url',
     redirects: '1',
-    pithumbsize: '1200',
-    titles: country.translations?.fr || country.name,
+    titles: getWikipediaTitle(country),
   });
 
   try {
@@ -144,52 +147,6 @@ async function loadWikipediaSummary(country) {
   } catch (error) {
     elements.description.textContent = 'Aucun résumé encyclopédique n’est disponible pour le moment.';
     return null;
-  }
-}
-
-function renderGallery(photos, fallbackPage) {
-  const galleryPhotos = photos.length > 0
-    ? photos.map((photo) => ({
-      url: photo.urls.regular,
-      alt: photo.alt_description || 'Paysage du pays',
-      author: photo.user.name,
-      authorUrl: photo.user.links.html,
-    }))
-    : fallbackPage?.thumbnail?.source
-      ? [{ url: fallbackPage.thumbnail.source, alt: fallbackPage.title || 'Image du pays' }]
-      : [];
-
-  if (galleryPhotos.length === 0) return;
-  elements.galleryGrid.innerHTML = galleryPhotos.map((photo) => `
-    <figure class="country-gallery__figure"><img src="${photo.url}" alt="${escapeHtml(photo.alt)}" loading="lazy"></figure>
-  `).join('');
-  if (photos.length > 0) {
-    const firstPhoto = galleryPhotos[0];
-    elements.galleryCredit.innerHTML = `Photo principale par <a href="${firstPhoto.authorUrl}" target="_blank" rel="noopener">${escapeHtml(firstPhoto.author)}</a> sur <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.`;
-    show(elements.galleryCredit);
-  }
-  show(elements.gallerySection);
-}
-
-async function loadGallery(country, fallbackPage) {
-  if (!UNSPLASH_ACCESS_KEY) {
-    renderGallery([], fallbackPage);
-    return;
-  }
-  try {
-    const query = new URLSearchParams({
-      query: `${country.translations?.fr || country.name} landscape`,
-      per_page: '4',
-      orientation: 'landscape',
-      content_filter: 'high',
-      client_id: UNSPLASH_ACCESS_KEY,
-    });
-    const response = await fetch(`https://api.unsplash.com/search/photos?${query}`, { headers: { 'Accept-Version': 'v1' } });
-    if (!response.ok) throw new Error('Unsplash request failed');
-    const data = await response.json();
-    renderGallery(data.results || [], fallbackPage);
-  } catch (error) {
-    renderGallery([], fallbackPage);
   }
 }
 
@@ -320,15 +277,55 @@ async function fetchHolidays(year, countryCode) {
   return response.json();
 }
 
+function getHolidayKey(name) {
+  return name.toLocaleLowerCase('fr-FR')
+    .replace(/[’']s\b/g, '')
+    .replace(/\b(day|holiday|public|national|observance)\b/g, '')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function groupHolidays(holidays) {
+  return holidays.reduce((groups, holiday) => {
+    const previous = groups.at(-1);
+    const isNextDay = previous && (Date.parse(`${holiday.date}T00:00:00Z`) - Date.parse(`${previous.endDate}T00:00:00Z`)) === 86400000;
+    if (previous && isNextDay && previous.key === getHolidayKey(holiday.name)) {
+      previous.endDate = holiday.date;
+      previous.names.push(holiday.name);
+      return groups;
+    }
+    groups.push({ key: getHolidayKey(holiday.name), startDate: holiday.date, endDate: holiday.date, names: [holiday.name] });
+    return groups;
+  }, []);
+}
+
+function getHolidayName(names) {
+  const counts = names.reduce((result, name) => result.set(name, (result.get(name) || 0) + 1), new Map());
+  return [...counts.entries()].sort((first, second) => second[1] - first[1])[0][0];
+}
+
+function formatHolidayRange(startDate, endDate) {
+  const formatter = new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short' });
+  if (startDate === endDate) return formatter.format(new Date(`${startDate}T00:00:00`));
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  const startMonth = new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(start);
+  const endMonth = new Intl.DateTimeFormat('fr-FR', { month: 'short' }).format(end);
+  return startMonth === endMonth
+    ? `${String(start.getDate()).padStart(2, '0')} - ${String(end.getDate()).padStart(2, '0')} ${endMonth}`
+    : `${formatter.format(start)} - ${formatter.format(end)}`;
+}
+
 async function loadHolidays(country) {
   if (!country.alpha2Code) return;
   try {
     const year = new Date().getFullYear();
     const holidays = await fetchHolidays(year, country.alpha2Code);
-    if (holidays.length === 0) return;
+    const groups = groupHolidays(holidays);
+    if (groups.length === 0) return;
     elements.holidaysTitle.textContent = `Fêtes nationales de ${year}`;
-    elements.holidayList.innerHTML = holidays.slice(0, 8).map((holiday) => `
-      <li><time datetime="${holiday.date}">${new Date(holiday.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</time><span>${escapeHtml(holiday.name)}</span></li>
+    elements.holidayList.innerHTML = groups.slice(0, 8).map((group) => `
+      <li><time datetime="${group.startDate}">${formatHolidayRange(group.startDate, group.endDate)}</time><span>${escapeHtml(getHolidayName(group.names))}</span></li>
     `).join('');
     show(elements.holidaySection);
   } catch (error) {
@@ -354,7 +351,7 @@ async function init() {
     hide(elements.loading);
     show(elements.root);
     const wikipediaPage = await loadWikipediaSummary(country);
-    await Promise.allSettled([loadGallery(country, wikipediaPage), loadCities(country, wikipediaPage), loadFood(country), loadWeather(country), loadIndicators(country), loadHolidays(country)]);
+    await Promise.allSettled([loadCities(country, wikipediaPage), loadFood(country), loadWeather(country), loadIndicators(country), loadHolidays(country)]);
   } catch (error) {
     hide(elements.loading);
     show(elements.error);
