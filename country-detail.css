@@ -13,49 +13,54 @@
 .country-summary div { min-width: 105px; }
 .country-summary dt, .identity-grid dt, .indicator-grid dt { margin-bottom: 4px; color: var(--text-faint); font-family: var(--font-mono); font-size: .63rem; letter-spacing: .06em; text-transform: uppercase; }
 .country-summary dd, .identity-grid dd, .indicator-grid dd { margin: 0; color: var(--text); font-weight: 500; }
-.country-flag-frame { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-card-hover); }
+.country-flag-frame { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card-hover); }
+.country-flag-frame::after { position: absolute; inset: 0; border: 1px solid rgb(255 255 255 / 8%); border-radius: inherit; content: ""; pointer-events: none; }
 .country-flag-frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .country-flag-frame__coordinates { position: absolute; right: 12px; bottom: 12px; padding: 4px 8px; color: var(--gold); background: rgb(16 19 26 / 86%); border-radius: var(--radius-pill); font-family: var(--font-mono); font-size: .67rem; }
 
 .detail-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .75fr); gap: clamp(36px, 7vw, 88px); padding-top: 52px; }
-.detail-section { padding-bottom: 34px; margin-bottom: 34px; }
+.detail-section { padding-bottom: 34px; margin-bottom: 34px; border-bottom: 1px solid var(--border); }
+.detail-section:last-child { border-bottom: 0; }
 .detail-section h2, .sidebar-card h2 { margin: 0 0 16px; color: var(--text); font-family: var(--font-display); font-size: clamp(1.35rem, 2vw, 1.7rem); font-weight: 600; letter-spacing: -.015em; }
 .detail-prose { max-width: 67ch; margin: 0; color: var(--text-muted); font-size: 1rem; line-height: 1.75; text-wrap: pretty; }
 .source-link { display: inline-flex; gap: 6px; align-items: center; margin-top: 16px; color: var(--gold); font-size: .87rem; font-weight: 600; text-decoration: none; }
-.identity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.identity-grid div { min-height: 78px; padding: 14px; background: var(--surface); border-radius: var(--radius-sm); }
+.identity-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.identity-grid div { min-height: 78px; padding: 14px; border-bottom: 1px solid var(--border); }
+.identity-grid div:nth-child(odd) { border-right: 1px solid var(--border); }
+.identity-grid div:nth-last-child(-n + 2) { border-bottom: 0; }
 .identity-grid dd { font-size: .92rem; overflow-wrap: anywhere; }
 .tag-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.border-item { display: flex; gap: 10px; align-items: center; min-width: 0; padding: 9px; color: var(--text-muted); background: var(--surface); border-radius: var(--radius-sm); font-size: .85rem; text-decoration: none; transition: background .15s var(--ease); }
-.border-item:hover { background: var(--surface-hover); }
+.border-item { display: flex; gap: 10px; align-items: center; min-width: 0; padding: 9px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: .85rem; text-decoration: none; transition: border-color .15s var(--ease), background .15s var(--ease); }
+.border-item:hover { background: var(--surface-hover); border-color: var(--text-faint); }
 .border-item img { width: 30px; height: 20px; flex: 0 0 auto; object-fit: cover; border-radius: 2px; }
 .border-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .city-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.city-item { display: flex; gap: 11px; align-items: center; min-width: 0; padding: 11px; background: var(--surface); border-radius: var(--radius-sm); }
+.city-item { display: flex; gap: 11px; align-items: center; min-width: 0; padding: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .city-item i { display: grid; width: 32px; height: 32px; flex: 0 0 auto; place-items: center; color: var(--gold); background: var(--surface-hover); border-radius: 6px; font-size: 1rem; }
 .city-item strong, .city-item small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .city-item strong { color: var(--text); font-size: .88rem; }
 .city-item small { margin-top: 2px; color: var(--text-faint); font-size: .75rem; }
 .food-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.food-item { display: flex; gap: 12px; align-items: center; min-width: 0; padding: 8px; background: var(--surface); border-radius: var(--radius-sm); }
+.food-item { display: flex; gap: 12px; align-items: center; min-width: 0; padding: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); }
 .food-item img { width: 52px; height: 52px; flex: 0 0 auto; object-fit: cover; border-radius: 6px; }
 .food-item span { overflow: hidden; color: var(--text); font-size: .9rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
-.holiday-list { display: grid; gap: 8px; padding: 0; margin: 0; list-style: none; }
+.holiday-list { display: grid; gap: 1px; padding: 0; margin: 0; overflow: hidden; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius-sm); list-style: none; }
 .holiday-list li { display: grid; grid-template-columns: 74px 1fr; gap: 16px; padding: 13px 15px; background: var(--surface); }
 .holiday-list time { color: var(--gold); font-family: var(--font-mono); font-size: .74rem; }
 .holiday-list span { color: var(--text-muted); font-size: .9rem; }
 
 .detail-sidebar { align-self: start; position: sticky; top: 22px; display: grid; gap: 16px; }
-.sidebar-card { padding: 22px; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-card); }
+.sidebar-card { padding: 22px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-card); }
 .sidebar-card h2 { font-size: 1.25rem; }
 .weather-card { background: var(--surface-hover); }
 .weather-card__content { display: flex; align-items: center; justify-content: space-between; }
 .weather-card__temperature { margin: 0; color: var(--text); font-family: var(--font-display); font-size: 3rem; font-weight: 600; line-height: 1; }
 .weather-card__description { margin: 7px 0 0; color: var(--text-muted); font-size: .9rem; }
 .weather-card__icon { color: var(--gold); font-size: 2.9rem; }
-.weather-card__wind { padding-top: 14px; margin: 18px 0 0; color: var(--text-faint); font-size: .8rem; }
-.indicator-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; }
-.indicator-grid div { min-height: 88px; padding: 13px; background: var(--surface-hover); border-radius: var(--radius-sm); }
+.weather-card__wind { padding-top: 14px; margin: 18px 0 0; color: var(--text-faint); border-top: 1px solid var(--border); font-size: .8rem; }
+.indicator-grid { display: grid; grid-template-columns: 1fr 1fr; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.indicator-grid div { min-height: 88px; padding: 13px; }
+.indicator-grid div + div { border-left: 1px solid var(--border); }
 .indicator-grid dd { font-family: var(--font-mono); font-size: .88rem; }
 .indicator-grid__loading { background: linear-gradient(100deg, var(--surface) 30%, var(--surface-hover) 50%, var(--surface) 70%); background-size: 200% 100%; animation: shimmer 1.6s ease-in-out infinite; }
 .sidebar-card__note { margin: 14px 0 0; color: var(--text-faint); font-size: .75rem; line-height: 1.5; }
@@ -77,5 +82,7 @@
 @media (max-width: 480px) {
   .country-summary { gap: 16px; margin-top: 28px; }
   .identity-grid { grid-template-columns: 1fr; }
+  .identity-grid div, .identity-grid div:nth-child(odd), .identity-grid div:nth-last-child(-n + 2) { border-right: 0; border-bottom: 1px solid var(--border); }
+  .identity-grid div:last-child { border-bottom: 0; }
   .tag-list, .city-grid, .food-grid { grid-template-columns: 1fr; }
 }
