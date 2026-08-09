@@ -153,7 +153,7 @@ function countryCardHTML(country) {
     : '';
 
   return `
-    <article class="card">
+    <a class="card card--link" href="country-detail.html?code=${encodeURIComponent(country.alpha2Code)}" aria-label="Voir la fiche de ${escapeHTML(country.name)}">
       <div class="card__flag-wrap">
         <img class="card__flag" src="${flagSrc}" alt="Drapeau : ${escapeHTML(country.name)}" loading="lazy" width="260" height="173">
         ${coords ? `<span class="card__coords">${coords}</span>` : ''}
@@ -169,7 +169,7 @@ function countryCardHTML(country) {
           <span class="card__languages">${escapeHTML(langLabel)}</span>
         </div>
       </div>
-    </article>
+    </a>
   `;
 }
 

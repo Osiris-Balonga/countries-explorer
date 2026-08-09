@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Découvrez les repères essentiels d'un pays dans Atlas.">
+  <title>Atlas | Fiche pays</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.6.0/fonts/remixicon.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="country-detail.css">
+  <script src="country-detail.js" defer></script>
+</head>
+<body class="detail-page">
+  <div class="grid-backdrop" aria-hidden="true"></div>
+
+  <header class="detail-nav">
+    <a class="detail-nav__brand" href="index.html" aria-label="Retour à la liste des pays">
+      <i class="ri-arrow-left-line" aria-hidden="true"></i>
+      <span>Atlas</span>
+    </a>
+    <p id="breadcrumb" class="detail-nav__breadcrumb"></p>
+  </header>
+
+  <main id="detail-root" class="detail-root" hidden>
+    <section class="country-heading" aria-labelledby="country-name">
+      <div class="country-heading__copy">
+        <p id="country-region" class="section-label"></p>
+        <h1 id="country-name"></h1>
+        <p id="country-native-name" class="country-heading__native"></p>
+        <dl class="country-summary">
+          <div><dt>Capitale</dt><dd id="country-capital"></dd></div>
+          <div><dt>Population</dt><dd id="country-population"></dd></div>
+          <div><dt>Superficie</dt><dd id="country-area"></dd></div>
+        </dl>
+      </div>
+      <div class="country-flag-frame">
+        <img id="country-flag" alt="" width="560" height="374">
+        <span id="country-coordinates" class="country-flag-frame__coordinates"></span>
+      </div>
+    </section>
+
+    <div class="detail-layout">
+      <div class="detail-content">
+        <section class="detail-section" aria-labelledby="overview-title">
+          <p class="section-label">Repères</p>
+          <h2 id="overview-title">Histoire et contexte</h2>
+          <p id="country-description" class="detail-prose">Chargement du contexte...</p>
+          <a id="wiki-link" class="source-link" href="#" target="_blank" rel="noopener" hidden>Lire la source <i class="ri-arrow-right-up-line" aria-hidden="true"></i></a>
+        </section>
+
+        <section class="detail-section" aria-labelledby="identity-title">
+          <p class="section-label">Identité</p>
+          <h2 id="identity-title">À retenir</h2>
+          <dl id="identity-grid" class="identity-grid"></dl>
+        </section>
+
+        <section id="border-section" class="detail-section" aria-labelledby="borders-title" hidden>
+          <p class="section-label">Voisinage</p>
+          <h2 id="borders-title">Pays frontaliers</h2>
+          <div id="border-list" class="tag-list"></div>
+        </section>
+
+        <section id="holiday-section" class="detail-section" aria-labelledby="holidays-title" hidden>
+          <p class="section-label">Calendrier</p>
+          <h2 id="holidays-title">Prochaines fêtes nationales</h2>
+          <ul id="holiday-list" class="holiday-list"></ul>
+        </section>
+      </div>
+
+      <aside class="detail-sidebar" aria-label="Données complémentaires">
+        <section id="weather-card" class="sidebar-card weather-card">
+          <p class="section-label">Sur place</p>
+          <div class="weather-card__content">
+            <div>
+              <p id="weather-temperature" class="weather-card__temperature">...</p>
+              <p id="weather-description" class="weather-card__description">Chargement de la météo</p>
+            </div>
+            <i id="weather-icon" class="ri-cloud-line weather-card__icon" aria-hidden="true"></i>
+          </div>
+          <p id="weather-wind" class="weather-card__wind"></p>
+        </section>
+
+        <section class="sidebar-card" aria-labelledby="indicators-title">
+          <p class="section-label">Données</p>
+          <h2 id="indicators-title">Indicateurs récents</h2>
+          <dl id="indicator-grid" class="indicator-grid">
+            <div class="indicator-grid__loading"></div>
+            <div class="indicator-grid__loading"></div>
+          </dl>
+          <p class="sidebar-card__note">Les dernières données disponibles peuvent provenir d'années différentes.</p>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <section id="detail-loading" class="detail-state" aria-live="polite">
+    <div class="detail-state__skeleton"></div>
+    <p>Ouverture de la fiche pays...</p>
+  </section>
+
+  <section id="detail-error" class="detail-state" hidden>
+    <i class="ri-error-warning-line" aria-hidden="true"></i>
+    <h1>Cette fiche reste introuvable</h1>
+    <p>Le pays demandé n'existe pas ou les données ne sont pas accessibles.</p>
+    <a class="retry-btn" href="index.html">Retour à la liste</a>
+  </section>
+
+  <footer class="footer">Données complémentaires via Open-Meteo, Banque mondiale, Wikimedia et Nager.Date.</footer>
+</body>
+</html>
