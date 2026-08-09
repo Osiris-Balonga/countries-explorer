@@ -1,8 +1,3 @@
-/* ============================================
-   ATLAS - design tokens
-   Palette encre de cartographe : charbon bleuté,
-   rouge-brique (repères), or (données).
-   ============================================ */
 :root {
   --bg: #10131a;
   --surface: #181c26;
@@ -14,9 +9,9 @@
   --text-muted: #838a9a;
   --text-faint: #565d6d;
 
-  --ink-red: #d6482f;      /* repère / accent primaire */
+  --ink-red: #d6482f;
   --ink-red-soft: rgba(214, 72, 47, 0.12);
-  --gold: #d9a441;         /* accent données / hover secondaire */
+  --gold: #d9a441;
 
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
@@ -60,7 +55,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* --- Signature : grille de coordonnées en fond --- */
 .grid-backdrop {
   position: fixed;
   inset: 0;
@@ -73,7 +67,6 @@ body {
   opacity: .5;
 }
 
-/* ============ Hero ============ */
 .hero {
   text-align: center;
   padding: var(--space-12) var(--space-4) var(--space-8);
@@ -109,7 +102,6 @@ body {
   padding: 0 var(--space-4) var(--space-12);
 }
 
-/* ============ Toolbar ============ */
 .toolbar {
   position: sticky;
   top: 0;
@@ -218,7 +210,6 @@ body {
 .view-btn:hover { background: var(--surface-hover); border-color: var(--text-faint); }
 .view-btn[aria-pressed="true"] { background: var(--ink-red); border-color: var(--ink-red); color: #fff; }
 
-/* ============ Vue carte du monde ============ */
 .map-wrap {
   position: relative;
   height: 520px;
@@ -267,7 +258,6 @@ body {
   margin: 0 0 var(--space-4);
 }
 
-/* ============ Grille de cartes ============ */
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -359,7 +349,6 @@ body {
   max-width: 55%;
 }
 
-/* ============ Squelettes de chargement ============ */
 .skeleton .card__flag-wrap,
 .skeleton .sk-line {
   background: linear-gradient(100deg, var(--surface) 30%, var(--surface-hover) 50%, var(--surface) 70%);
@@ -389,7 +378,6 @@ body {
   animation: shimmer 1.6s ease-in-out infinite;
 }
 
-/* ============ États vide / erreur ============ */
 .state-panel {
   display: flex;
   flex-direction: column;
@@ -422,7 +410,6 @@ body {
 }
 .retry-btn:hover { background: var(--ink-red); color: #fff; }
 
-/* ============ Footer ============ */
 .footer {
   text-align: center;
   padding: var(--space-8) var(--space-4) var(--space-10);
@@ -431,13 +418,11 @@ body {
 }
 .footer a { color: var(--text-muted); }
 
-/* ============ Focus visible (accessibilité) ============ */
 :focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
 
-/* ============ Réduction de mouvement ============ */
 @media (prefers-reduced-motion: reduce) {
   .card, .chip, .sort-btn, .sort-btn__arrow, .retry-btn, .search input, .jvm-region {
     transition: none !important;
@@ -447,7 +432,6 @@ body {
   .skeleton .card__flag-wrap, .skeleton .sk-line { animation: none; }
 }
 
-/* ============ Responsive ============ */
 @media (max-width: 640px) {
   .toolbar { flex-direction: column; align-items: stretch; }
   .search, .chips, .sort-btn { flex: 1 1 auto; width: 100%; }

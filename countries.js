@@ -1,10 +1,5 @@
 'use strict';
 
-/* ============================================
-   ATLAS - Country explorer
-   Source: countries.dev public API
-   ============================================ */
-
 const API_BASE = 'https://countries.dev';
 
 const CONTINENTS = ['Tous', 'Africa', 'Americas', 'Asia', 'Europe', 'Oceania'];
@@ -43,8 +38,6 @@ const state = {
 let mapInstance = null;
 let mapLoading = false;
 
-/* ---------- Data loading ---------- */
-
 async function loadCountries() {
   showSkeletons(12);
   hide(els.errorState);
@@ -68,8 +61,6 @@ async function loadCountries() {
   }
 }
 
-/* ---------- Filter controls ---------- */
-
 function buildChips() {
   els.chips.innerHTML = '';
   CONTINENTS.forEach((region) => {
@@ -87,8 +78,6 @@ function buildChips() {
     els.chips.appendChild(btn);
   });
 }
-
-/* ---------- Data transformation ---------- */
 
 function getVisibleCountries() {
   const query = state.search.trim().toLowerCase();
@@ -111,8 +100,6 @@ function getVisibleCountries() {
 
   return list;
 }
-
-/* ---------- Rendering ---------- */
 
 function render() {
   const list = getVisibleCountries();
@@ -179,8 +166,6 @@ function escapeHTML(str) {
   return div.innerHTML;
 }
 
-/* ---------- Squelettes ---------- */
-
 function showSkeletons(count) {
   els.resultsCount.textContent = '';
   els.grid.innerHTML = Array.from({ length: count }, () => `
@@ -202,8 +187,6 @@ function showMapSkeleton() {
     </div>
   `;
 }
-
-/* ---------- Map view ---------- */
 
 const FALLBACK_FILL = '#1f2531';
 let flagDefs = null;
@@ -310,8 +293,6 @@ function paintFlags(list) {
 function show(el) { el.hidden = false; }
 function hide(el) { el.hidden = true; }
 
-/* ---------- Event listeners ---------- */
-
 let searchTimer = null;
 els.searchInput.addEventListener('input', (e) => {
   clearTimeout(searchTimer);
@@ -348,7 +329,5 @@ mobileViewport.addEventListener('change', (event) => {
   document.getElementById('view-icon').className = 'ri-map-2-line';
   render();
 });
-
-/* ---------- Start ---------- */
 
 loadCountries();
